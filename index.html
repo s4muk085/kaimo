@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>KAIMO</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      text-align: center;
+      background: #f0f8ff;
+    }
+
+    textarea {
+      width: 100%;
+      height: 120px;
+      padding: 12px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    button {
+      background: #1E3A8A;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #response {
+      margin-top: 20px;
+      padding: 15px;
+      text-align: left;
+      background: #e6f2ff;
+      border-radius: 8px;
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>KAIMO</h1>
+  <p>Onde sentir é válido.</p>
+  <textarea id="diary" placeholder="Como te sentes hoje?"></textarea>
+  <button onclick="enviar()">Enviar para KAIMO</button>
+  <div id="response"></div>
+
+  <script>
+    // 🔑 COLE SUA API KEY AQUI
+    const API_KEY = "AIzaSyAUzDWzNA9mT5QKxIbFSnjknUdiQP-4ViI";
+
+    async function enviar() {
+      const input = document.getElementById("diary");
+      const responseDiv = document.getElementById("response");
+      const texto = input.value.trim();
+
+      if (!texto) {
+        alert("Escreve algo.");
+        return;
+      }
+
+      responseDiv.style.display = "block";
+      responseDiv.innerText = "KAIMO: pensando...";
+
+      try {
+        const res = await fetch(
+          "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=" + API_KEY,
+          {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+              contents: [
+                {
+                  parts: [
+                    {
+                      text: `
+Você é KAIMO, um espaço emocional profundo, silencioso e humano.
+Nunca diga "tudo vai ficar bem", "respira", "você é forte" ou "estou aqui para você".
+Nunca dê conselhos.
+
+Seu papel: reconhecer com empatia, em 1–2-3 frases, como um amigo que escuta de verdade.
+
+Use linguagem real, às vezes poética, mas nunca vazia.
+Use metáforas simples: "como um peso que não cansa", "um rio parado", "fôlego preso".
+
+Se o texto for curto, incentive com delicadeza com frases empaticas e humanizadas
+
+Texto do usuário: "${texto}"
+Resposta (KAIMO):
+                      `
+                    }
+                  ]
+                }
+              ]
+            })
+          }
+        );
+
+        const data = await res.json();
+        const resposta = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+        if (resposta) {
+          responseDiv.innerText = "KAIMO: " + resposta;
+        } else {
+          throw new Error("Sem resposta válida");
+        }
+      } catch (err) {
+        console.error("ERRO DETALHADO:", err);
+        responseDiv.innerText = "KAIMO: [Erro: " + (err.message || "rede") + "] → Mas estou aqui.";
+      }
+
+      input.value = "";
+    }
+  </script>
+</body>
+
+</html>
